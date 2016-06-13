@@ -257,12 +257,7 @@ class ServerConfig
         }
 
         return [
-            'tun-mtu 1500',
-            'fragment 1300',
-            'mssfix',
-            'push "tun-mtu 1500"',
-            'push "fragment 1300"',
-            'push "mssfix"',
+            'mssfix 1300',
         ];
     }
 }
