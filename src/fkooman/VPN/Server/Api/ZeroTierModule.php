@@ -58,7 +58,7 @@ class ZeroTierModule implements ServiceModuleInterface
                 $networkName = 'zt_network_name';
 
                 return new ApiResponse(
-                    'network',
+                    'ok',
                     $this->zeroTier->addNetwork(
                         $tokenInfo->getUserId(),
                         $networkName

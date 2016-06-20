@@ -100,7 +100,8 @@ class ZeroTier
             ]
         )->json();
 
-        return $response;
+        // XXX see if all okay, then return true
+        return true;
     }
 
     /**
