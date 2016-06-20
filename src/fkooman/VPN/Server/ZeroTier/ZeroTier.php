@@ -109,7 +109,12 @@ class ZeroTier
     public function getNetworks($userId)
     {
         $response = $this->client->get(
-            sprintf('%s/controller/network/', $this->controllerUrl)
+            sprintf('%s/controller/network', $this->controllerUrl),
+            [
+                'headers' => [
+                    'X-ZT1-Auth' => $this->authToken,
+                ],
+            ]
         );
 
         return $response->json();
