@@ -108,16 +108,30 @@ class ZeroTier
      */
     public function getNetworks($userId)
     {
+        $response = $this->client->get(
+            sprintf('%s/controller/network/', $this->controllerUrl)
+        );
+
+        return $response->json();
     }
 
+    /**
+     * Add a client to a network.
+     */
     public function addClient($userId, $networkId, $clientId)
     {
     }
 
+    /**
+     * Remove a client from a network.
+     */
     public function removeClient($userId, $networkId, $clientId)
     {
     }
 
+    /**
+     * Remove a network.
+     */
     public function removeNetwork($userId, $networkId)
     {
     }
