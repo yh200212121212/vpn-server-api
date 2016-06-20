@@ -30,6 +30,7 @@ use fkooman\VPN\Server\Api\InfoModule;
 use fkooman\VPN\Server\Api\LogModule;
 use fkooman\VPN\Server\Api\OpenVpnModule;
 use fkooman\VPN\Server\Api\UsersModule;
+use fkooman\VPN\Server\Api\ZeroTierModule;
 use fkooman\VPN\Server\ConnectionLog;
 use fkooman\VPN\Server\CrlFetcher;
 use fkooman\VPN\Server\Disable;
@@ -38,6 +39,7 @@ use fkooman\VPN\Server\OpenVpn\ServerManager;
 use fkooman\VPN\Server\OtpSecret;
 use fkooman\VPN\Server\Pools;
 use fkooman\VPN\Server\VootToken;
+use fkooman\VPN\Server\ZeroTier\ZeroTier;
 use GuzzleHttp\Client;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\SyslogHandler;
@@ -54,6 +56,16 @@ try {
 
     $aclConfig = new Reader(
         new YamlFile(dirname(__DIR__).'/config/acl.yaml')
+    );
+
+    $zeroTierConfig = new Reader(
+        new YamlFile(dirname(__DIR__).'/config/zerotier.yaml')
+    );
+
+    $zeroTier = new ZeroTier(
+        $zeroTierConfig->v('url'),
+        $zeroTierConfig->v('id'),
+        $zeroTierConfig->v('token')
     );
 
     $serverPools = new Pools($poolsConfig->v('pools'));
@@ -112,7 +124,7 @@ try {
         $connectionLog = null;
     }
 
-    // http request router
+    // HTTP request router
     $service = new Service();
 
     // API authentication
@@ -142,6 +154,7 @@ try {
     $service->addModule(new UsersModule($usersDisable, $otpSecret, $vootToken, $acl, $logger));
     $service->addModule(new CaModule($crlFetcher, $logger));
     $service->addModule(new InfoModule($serverPools));
+    $service->addModule(new ZeroTierModule($zeroTier));
     $service->run()->send();
 } catch (Exception $e) {
     // internal server error
