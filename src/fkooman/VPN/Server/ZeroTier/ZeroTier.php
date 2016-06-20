@@ -60,41 +60,43 @@ class ZeroTier
                     'Content-Type' => 'application/json',
                     'X-ZT1-Auth' => $this->authToken,
                 ],
-                'body' => [
-                    'allowPassiveBridging' => false,
-                    'enableBroadcast' => true,
-                    'gateways' => [],
-                    'ipAssignmentPools' => [
-                        'ipRangeEnd' => '10.66.255.254',    // XXX
-                        'ipRangeStart' => '10.66.0.1',      // XXX
-                    ],
-                    'ipLocalRoutes' => [
-                        '10.66.0.0/16',                     // XXX
-                    ],
-                    'multicastLimit' => 32,
-                    'name' => $networkName,
-                    'private' => false,                     // XXX
-                    'relays' => [],
-                    'rules' => [
-                        [
-                            'action' => 'accept',
-                            'etherType' => 2048,
-                            'ruleNo' => 10,
+                'body' => json_encode(
+                    [
+                        'allowPassiveBridging' => false,
+                        'enableBroadcast' => true,
+                        'gateways' => [],
+                        'ipAssignmentPools' => [
+                            'ipRangeEnd' => '10.66.255.254',    // XXX
+                            'ipRangeStart' => '10.66.0.1',      // XXX
                         ],
-                        [
-                            'action' => 'accept',
-                            'etherType' => 2054,
-                            'ruleNo' => 20,
+                        'ipLocalRoutes' => [
+                            '10.66.0.0/16',                     // XXX
                         ],
-                        [
-                            'action' => 'accept',
-                            'etherType' => 34525,
-                            'ruleNo' => 30,
+                        'multicastLimit' => 32,
+                        'name' => $networkName,
+                        'private' => false,                     // XXX
+                        'relays' => [],
+                        'rules' => [
+                            [
+                                'action' => 'accept',
+                                'etherType' => 2048,
+                                'ruleNo' => 10,
+                            ],
+                            [
+                                'action' => 'accept',
+                                'etherType' => 2054,
+                                'ruleNo' => 20,
+                            ],
+                            [
+                                'action' => 'accept',
+                                'etherType' => 34525,
+                                'ruleNo' => 30,
+                            ],
                         ],
-                    ],
-                    'v4AssignMode' => 'zt',
-                    'v6AssignMode' => 'rfc4193',
-                ],
+                        'v4AssignMode' => 'zt',
+                        'v6AssignMode' => 'rfc4193',
+                    ]
+                ),
             ]
         )->json();
 
