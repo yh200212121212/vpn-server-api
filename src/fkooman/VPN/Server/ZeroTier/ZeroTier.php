@@ -53,6 +53,53 @@ class ZeroTier
         // generate a new network ID
         $networkId = sprintf('%s%s', $this->controllerId, bin2hex(random_bytes(3)));
 
+        $addressBytes = [
+            hexdec(bin2hex(random_bytes(1))),
+            hexdec(bin2hex(random_bytes(1))),
+        ];
+
+        $ipLocalRoutes = sprintf('10.%s.%s.0/24', $addressBytes[0], $addressBytes[1]);
+        $ipRangeStart = sprintf('10.%s.%s.0', $addressBytes[0], $addressBytes[1]);
+        $ipRangeEnd = sprintf('10.%s.%s.127', $addressBytes[0], $addressBytes[1]);
+
+        $body = json_encode(
+            [
+                'allowPassiveBridging' => false,
+                'enableBroadcast' => true,
+                'gateways' => [],
+                'ipAssignmentPools' => [
+                    'ipRangeEnd' => $ipRangeEnd,
+                    'ipRangeStart' => $ipRangeStart,
+                ],
+                'ipLocalRoutes' => [
+                    $ipLocalRoutes,
+                ],
+                'multicastLimit' => 32,
+                'name' => sprintf('%s_%s', $userId, $networkName),
+                'private' => false,                     // XXX
+                'relays' => [],
+                'rules' => [
+                    [
+                        'action' => 'accept',
+                        'etherType' => 2048,
+                        'ruleNo' => 10,
+                    ],
+                    [
+                        'action' => 'accept',
+                        'etherType' => 2054,
+                        'ruleNo' => 20,
+                    ],
+                    [
+                        'action' => 'accept',
+                        'etherType' => 34525,
+                        'ruleNo' => 30,
+                    ],
+                ],
+                'v4AssignMode' => 'zt',
+                'v6AssignMode' => 'rfc4193',
+            ]
+        );
+
         $response = $this->client->post(
             sprintf('%s/controller/network/%s', $this->controllerUrl, $networkId),
             [
@@ -60,43 +107,7 @@ class ZeroTier
                     'Content-Type' => 'application/json',
                     'X-ZT1-Auth' => $this->authToken,
                 ],
-                'body' => json_encode(
-                    [
-                        'allowPassiveBridging' => false,
-                        'enableBroadcast' => true,
-                        'gateways' => [],
-                        'ipAssignmentPools' => [
-                            'ipRangeEnd' => '10.66.255.254',    // XXX
-                            'ipRangeStart' => '10.66.0.1',      // XXX
-                        ],
-                        'ipLocalRoutes' => [
-                            '10.66.0.0/16',                     // XXX
-                        ],
-                        'multicastLimit' => 32,
-                        'name' => sprintf('%s_%s', $userId, $networkName),
-                        'private' => false,                     // XXX
-                        'relays' => [],
-                        'rules' => [
-                            [
-                                'action' => 'accept',
-                                'etherType' => 2048,
-                                'ruleNo' => 10,
-                            ],
-                            [
-                                'action' => 'accept',
-                                'etherType' => 2054,
-                                'ruleNo' => 20,
-                            ],
-                            [
-                                'action' => 'accept',
-                                'etherType' => 34525,
-                                'ruleNo' => 30,
-                            ],
-                        ],
-                        'v4AssignMode' => 'zt',
-                        'v6AssignMode' => 'rfc4193',
-                    ]
-                ),
+                'body' => $body,
             ]
         )->json();
 
@@ -120,8 +131,8 @@ class ZeroTier
             ]
         )->json();
 
-        // XXX this is slow, we should interface with the ZT controller db 
-        // directly instead
+        // XXX this is really slow, we should interface with the ZT controller db 
+        // directly instead for read purposes, NOT for write
         foreach ($networkIdentifiers as $networkId) {
             $networkInfo = $this->client->get(
                 sprintf('%s/controller/network/%s', $this->controllerUrl, $networkId),
@@ -134,7 +145,7 @@ class ZeroTier
 
             $networkName = $networkInfo['name'];
             if (0 === strpos($networkInfo['name'], $userId)) {
-                $responseData[] = ['id' => $networkId, 'name' => $networkInfo['name']];
+                $responseData[] = ['id' => $networkId, 'name' => $networkInfo['name'], 'ipAssignmentPools' => $networkInfo['ipAssignmentPools']];
             }
         }
 
@@ -146,6 +157,7 @@ class ZeroTier
      */
     public function addClient($networkId, $clientId)
     {
+        // NOP
     }
 
     /**
@@ -153,6 +165,7 @@ class ZeroTier
      */
     public function removeClient($networkId, $clientId)
     {
+        // NOP
     }
 
     /**
@@ -160,5 +173,6 @@ class ZeroTier
      */
     public function removeNetwork($networkId)
     {
+        // NOP
     }
 }
