@@ -1,5 +1,9 @@
 # ZeroTier Network Controller Configuration
 
 url: 'http://localhost:9993'
+
+# zerotier-cli info
 id: f50a89be2d
+
+# See /var/lib/zerotier-one/authtoken.secret
 token: ypf7adpsl7e3ple3uhq4fciq
