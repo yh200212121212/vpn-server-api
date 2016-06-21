@@ -23,6 +23,7 @@ use fkooman\Rest\ServiceModuleInterface;
 use fkooman\Rest\Plugin\Authentication\Bearer\TokenInfo;
 use fkooman\VPN\Server\ZeroTier\ZeroTier;
 use fkooman\VPN\Server\ApiResponse;
+use fkooman\VPN\Server\InputValidation;
 
 class ZeroTierModule implements ServiceModuleInterface
 {
@@ -42,9 +43,12 @@ class ZeroTierModule implements ServiceModuleInterface
                 // XXX scope
                 $tokenInfo->getScope()->requireScope(['admin', 'portal']);
 
+                $userId = $request->getUrl()->getQueryParameter('user_id');
+                InputValidation::userId($userId);
+
                 return new ApiResponse(
                     'networks',
-                    $this->zeroTier->getNetworks($tokenInfo->getUserId())
+                    $this->zeroTier->getNetworks($userId)
                 );
             }
         );
@@ -54,13 +58,16 @@ class ZeroTierModule implements ServiceModuleInterface
                 // XXX scope
                 $tokenInfo->getScope()->requireScope(['admin', 'portal']);
 
-                // XXX obtain name from post params
-                $networkName = 'zt_network_name';
+                $userId = $request->getPostParameter('user_id');
+                InputValidation::userId($userId);
+
+                $networkName = $request->getPostParameter('network_name');
+                InputValidation::networkName($networkName);
 
                 return new ApiResponse(
                     'ok',
                     $this->zeroTier->addNetwork(
-                        $tokenInfo->getUserId(),
+                        $userId,
                         $networkName
                     )
                 );

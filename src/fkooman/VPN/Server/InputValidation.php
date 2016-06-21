@@ -38,6 +38,13 @@ class InputValidation
         }
     }
 
+    public static function networkName($networkName)
+    {
+        if (0 === preg_match(self::COMMON_NAME_PATTERN, $networkName)) {
+            throw new BadRequestException('invalid value for "network_name"');
+        }
+    }
+
     public static function userId($userId)
     {
         if (0 === preg_match(self::USER_ID_PATTERN, $userId)) {

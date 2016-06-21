@@ -73,7 +73,7 @@ class ZeroTier
                             '10.66.0.0/16',                     // XXX
                         ],
                         'multicastLimit' => 32,
-                        'name' => $networkName,
+                        'name' => sprintf('%s_%s', $userId, $networkName),
                         'private' => false,                     // XXX
                         'relays' => [],
                         'rules' => [
@@ -109,36 +109,56 @@ class ZeroTier
      */
     public function getNetworks($userId)
     {
-        $response = $this->client->get(
+        $responseData = [];
+
+        $networkIdentifiers = $this->client->get(
             sprintf('%s/controller/network', $this->controllerUrl),
             [
                 'headers' => [
                     'X-ZT1-Auth' => $this->authToken,
                 ],
             ]
-        );
+        )->json();
 
-        return $response->json();
+        // XXX this is slow, we should interface with the ZT controller db 
+        // directly instead
+        foreach ($networkIdentifiers as $networkId) {
+            $networkInfo = $this->client->get(
+                sprintf('%s/controller/network/%s', $this->controllerUrl, $networkId),
+                [
+                    'headers' => [
+                        'X-ZT1-Auth' => $this->authToken,
+                    ],
+                ]
+            )->json();
+
+            $networkName = $networkInfo['name'];
+            if (0 === strpos($networkInfo['name'], $userId)) {
+                $responseData[] = ['id' => $networkId, 'name' => $networkInfo['name']];
+            }
+        }
+
+        return $responseData;
     }
 
     /**
      * Add a client to a network.
      */
-    public function addClient($userId, $networkId, $clientId)
+    public function addClient($networkId, $clientId)
     {
     }
 
     /**
      * Remove a client from a network.
      */
-    public function removeClient($userId, $networkId, $clientId)
+    public function removeClient($networkId, $clientId)
     {
     }
 
     /**
      * Remove a network.
      */
-    public function removeNetwork($userId, $networkId)
+    public function removeNetwork($networkId)
     {
     }
 }
