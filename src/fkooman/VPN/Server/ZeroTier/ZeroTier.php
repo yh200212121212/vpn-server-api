@@ -175,6 +175,16 @@ class ZeroTier
      */
     public function removeNetwork($networkId)
     {
-        // NOP
+        $this->client->delete(
+            sprintf('%s/controller/network/%s', $this->controllerUrl, $networkId),
+            [
+                'headers' => [
+                    'X-ZT1-Auth' => $this->authToken,
+                ],
+            ]
+        )->json();
+
+        // XXX see if all okay, then return true
+        return true;
     }
 }

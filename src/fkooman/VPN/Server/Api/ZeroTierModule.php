@@ -52,6 +52,24 @@ class ZeroTierModule implements ServiceModuleInterface
                 );
             }
         );
+
+        $service->delete(
+            '/zt/networks/:networkId',
+            function (Request $request, TokenInfo $tokenInfo, $networkId) {
+                // XXX scope
+                $tokenInfo->getScope()->requireScope(['admin', 'portal']);
+
+                InputValidation::networkId($networkId);
+
+                return new ApiResponse(
+                    'ok',
+                    $this->zeroTier->removeNetwork(
+                        $networkId
+                    )
+                );
+            }
+        );
+
         $service->post(
             '/zt/networks',
             function (Request $request, TokenInfo $tokenInfo) {
