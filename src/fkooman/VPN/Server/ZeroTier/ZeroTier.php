@@ -54,8 +54,8 @@ class ZeroTier
         $networkId = sprintf('%s%s', $this->controllerId, bin2hex(random_bytes(3)));
 
         $addressBytes = [
-            hexdec(bin2hex(random_bytes(1))),
-            hexdec(bin2hex(random_bytes(1))),
+            ''.hexdec(bin2hex(random_bytes(1))),
+            ''.hexdec(bin2hex(random_bytes(1))),
         ];
 
         $ipLocalRoutes = sprintf('10.%s.%s.0/24', $addressBytes[0], $addressBytes[1]);
@@ -68,8 +68,10 @@ class ZeroTier
                 'enableBroadcast' => true,
                 'gateways' => [],
                 'ipAssignmentPools' => [
-                    'ipRangeEnd' => $ipRangeEnd,
-                    'ipRangeStart' => $ipRangeStart,
+                    [
+                        'ipRangeEnd' => $ipRangeEnd,
+                        'ipRangeStart' => $ipRangeStart,
+                    ],
                 ],
                 'ipLocalRoutes' => [
                     $ipLocalRoutes,
