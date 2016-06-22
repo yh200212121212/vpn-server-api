@@ -78,7 +78,7 @@ class ZeroTier
                 ],
                 'multicastLimit' => 32,
                 'name' => sprintf('%s_%s', $userId, $networkName),
-                'private' => false,                     // XXX
+                'private' => true,                     // XXX
                 'relays' => [],
                 'rules' => [
                     [
