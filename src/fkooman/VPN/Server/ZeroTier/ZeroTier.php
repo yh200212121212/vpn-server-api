@@ -78,7 +78,7 @@ class ZeroTier
                 ],
                 'multicastLimit' => 32,
                 'name' => sprintf('%s_%s', $userId, $networkName),
-                'private' => true,                     // XXX
+                'private' => true,
                 'relays' => [],
                 'rules' => [
                     [
@@ -159,7 +159,24 @@ class ZeroTier
      */
     public function addClient($networkId, $clientId)
     {
-        // NOP
+        $this->client->post(
+            sprintf('%s/controller/network/%s/member/%s', $this->controllerUrl, $networkId, $clientId),
+            [
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'X-ZT1-Auth' => $this->authToken,
+                ],
+                'body' => json_encode(
+                    [
+                        'authorized' => true,
+                        'activeBridge' => false,    // XXX
+                    ]
+                ),
+            ]
+        )->json();
+
+        // XXX see if all okay, then return true
+        return true;
     }
 
     /**
@@ -167,7 +184,18 @@ class ZeroTier
      */
     public function removeClient($networkId, $clientId)
     {
-        // NOP
+        $this->client->delete(
+            sprintf('%s/controller/network/%s/member/%s', $this->controllerUrl, $networkId, $clientId),
+            [
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'X-ZT1-Auth' => $this->authToken,
+                ],
+            ]
+        )->json();
+
+        // XXX see if all okay, then return true
+        return true;
     }
 
     /**

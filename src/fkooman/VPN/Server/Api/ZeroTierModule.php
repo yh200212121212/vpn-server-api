@@ -91,5 +91,44 @@ class ZeroTierModule implements ServiceModuleInterface
                 );
             }
         );
+
+        $service->post(
+            '/zt/networks/:networkId/member',
+            function (Request $request, TokenInfo $tokenInfo, $networkId) {
+                // XXX scope
+                $tokenInfo->getScope()->requireScope(['admin', 'portal']);
+
+                InputValidation::networkId($networkId);
+                $clientId = $request->getPostParameter('client_id');
+                InputValidation::clientId($clientId);
+
+                return new ApiResponse(
+                    'ok',
+                    $this->zeroTier->addClient(
+                        $networkId,
+                        $clientId
+                    )
+                );
+            }
+        );
+
+        $service->delete(
+            '/zt/networks/:networkId/member/:clientId',
+            function (Request $request, TokenInfo $tokenInfo, $networkId, $clientId) {
+                // XXX scope
+                $tokenInfo->getScope()->requireScope(['admin', 'portal']);
+
+                InputValidation::networkId($networkId);
+                InputValidation::clientId($clientId);
+
+                return new ApiResponse(
+                    'ok',
+                    $this->zeroTier->addClient(
+                        $networkId,
+                        $clientId
+                    )
+                );
+            }
+        );
     }
 }

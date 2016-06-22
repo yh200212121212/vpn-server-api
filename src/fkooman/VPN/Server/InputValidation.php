@@ -27,6 +27,7 @@ class InputValidation
     const OTP_KEY_PATTERN = '/^[0-9]{6}$/';
     const OTP_SECRET_PATTERN = '/^[A-Z0-9]{16}$/';
     const NETWORK_ID_PATTERN = '/^[a-fA-F0-9]{16}$/';
+    const CLIENT_ID_PATTERN = '/^[a-fA-F0-9]{10}$/';
     const ACCESS_TOKEN_PATTERN = '/^[\x20-\x7E]+$/';
 
     public static function commonName($commonName)
@@ -50,6 +51,13 @@ class InputValidation
     {
         if (0 === preg_match(self::NETWORK_ID_PATTERN, $networkId)) {
             throw new BadRequestException('invalid value for "network_id"');
+        }
+    }
+
+    public static function clientId($clientId)
+    {
+        if (0 === preg_match(self::CLIENT_ID_PATTERN, $clientId)) {
+            throw new BadRequestException('invalid value for "client_id"');
         }
     }
 
