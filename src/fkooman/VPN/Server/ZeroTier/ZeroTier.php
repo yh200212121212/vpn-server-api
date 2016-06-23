@@ -147,7 +147,19 @@ class ZeroTier
 
             $networkName = $networkInfo['name'];
             if (0 === strpos($networkInfo['name'], $userId)) {
-                $responseData[] = ['id' => $networkId, 'name' => $networkInfo['name'], 'ipAssignmentPools' => $networkInfo['ipAssignmentPools']];
+                // get the members
+                // XXX inefficient
+                $clientIdentifiers = $this->client->get(
+                    sprintf('%s/controller/network/%s/member', $this->controllerUrl, $networkId),
+                    [
+                        'headers' => [
+                            'X-ZT1-Auth' => $this->authToken,
+                        ],
+                    ]
+                )->json();
+                $members = array_keys($clientIdentifiers);
+
+                $responseData[] = ['members' => $members, 'id' => $networkId, 'name' => $networkInfo['name'], 'ipAssignmentPools' => $networkInfo['ipAssignmentPools']];
             }
         }
 
