@@ -7,3 +7,9 @@ id: f50a89be2d
 
 # See /var/lib/zerotier-one/authtoken.secret
 token: ypf7adpsl7e3ple3uhq4fciq
+
+# The ZeroTier Client ID database
+db:
+    dsn: 'sqlite:/var/lib/vpn-server-api/zerotier.sqlite'
+    #username: foo
+    #password: bar

@@ -40,6 +40,7 @@ use fkooman\VPN\Server\OtpSecret;
 use fkooman\VPN\Server\Pools;
 use fkooman\VPN\Server\VootToken;
 use fkooman\VPN\Server\ZeroTier\ZeroTier;
+use fkooman\VPN\Server\ZeroTier\ClientDb;
 use GuzzleHttp\Client;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\SyslogHandler;
@@ -67,6 +68,14 @@ try {
         $zeroTierConfig->v('id'),
         $zeroTierConfig->v('token')
     );
+
+    $db = new PDO(
+        $zeroTierConfig->v('db', 'dsn'),
+        $zeroTierConfig->v('db', 'username', false),
+        $zeroTierConfig->v('db', 'password', false)
+    );
+
+    $clientDb = new ClientDb($db);
 
     $serverPools = new Pools($poolsConfig->v('pools'));
 
@@ -154,7 +163,7 @@ try {
     $service->addModule(new UsersModule($usersDisable, $otpSecret, $vootToken, $acl, $logger));
     $service->addModule(new CaModule($crlFetcher, $logger));
     $service->addModule(new InfoModule($serverPools));
-    $service->addModule(new ZeroTierModule($zeroTier));
+    $service->addModule(new ZeroTierModule($zeroTier, $clientDb));
     $service->run()->send();
 } catch (Exception $e) {
     // internal server error

@@ -21,6 +21,7 @@ use fkooman\Config\Reader;
 use fkooman\Config\YamlFile;
 use fkooman\VPN\Server\ConnectionLog;
 use fkooman\VPN\Server\OtpLog;
+use fkooman\VPN\Server\ZeroTier\ClientDb;
 
 try {
     $config = new Reader(
@@ -44,6 +45,18 @@ try {
 
     $otpLog = new OtpLog($db);
     $otpLog->initDatabase();
+
+    $config = new Reader(
+        new YamlFile(dirname(__DIR__).'/config/zerotier.yaml')
+    );
+    $db = new PDO(
+        $config->v('db', 'dsn'),
+        $config->v('db', 'username', false),
+        $config->v('db', 'password', false)
+    );
+
+    $clientDb = new ClientDb($db);
+    $clientDb->initDatabase();
 } catch (Exception $e) {
     echo $e->getMessage().PHP_EOL;
     exit(1);

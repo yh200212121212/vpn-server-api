@@ -22,6 +22,7 @@ use fkooman\Rest\Service;
 use fkooman\Rest\ServiceModuleInterface;
 use fkooman\Rest\Plugin\Authentication\Bearer\TokenInfo;
 use fkooman\VPN\Server\ZeroTier\ZeroTier;
+use fkooman\VPN\Server\ZeroTier\ClientDb;
 use fkooman\VPN\Server\ApiResponse;
 use fkooman\VPN\Server\InputValidation;
 
@@ -30,9 +31,13 @@ class ZeroTierModule implements ServiceModuleInterface
     /** @var \fkooman\VPN\Server\ZeroTier\ZeroTier */
     private $zeroTier;
 
-    public function __construct(ZeroTier $zeroTier)
+    /** @var \fkooman\VPN\Server\ZeroTier\ClientDb */
+    private $clientDb;
+
+    public function __construct(ZeroTier $zeroTier, ClientDb $clientDb)
     {
         $this->zeroTier = $zeroTier;
+        $this->clientDb = $clientDb;
     }
 
     public function init(Service $service)
@@ -125,6 +130,27 @@ class ZeroTierModule implements ServiceModuleInterface
                     'ok',
                     $this->zeroTier->addClient(
                         $networkId,
+                        $clientId
+                    )
+                );
+            }
+        );
+
+        $service->post(
+            '/zt/register',
+            function (Request $request, TokenInfo $tokenInfo) {
+                // XXX scope
+                $tokenInfo->getScope()->requireScope(['admin', 'portal']);
+
+                $userId = $request->getPostParameter('user_id');
+                InputValidation::userId($userId);
+                $clientId = $request->getPostParameter('client_id');
+                InputValidation::clientId($clientId);
+
+                return new ApiResponse(
+                    'ok',
+                    $this->clientDb->register(
+                        $userId,
                         $clientId
                     )
                 );
