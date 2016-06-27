@@ -88,8 +88,8 @@ class ZeroTierModule implements ServiceModuleInterface
                 InputValidation::networkName($networkName);
 
                 return new ApiResponse(
-                    'ok' => true,
-                    'network_id' => $this->zeroTier->addNetwork(
+                    'network_id',
+                    $this->zeroTier->addNetwork(
                         $userId,
                         $networkName
                     )
