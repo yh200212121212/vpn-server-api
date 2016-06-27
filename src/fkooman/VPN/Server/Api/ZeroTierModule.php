@@ -137,7 +137,7 @@ class ZeroTierModule implements ServiceModuleInterface
         );
 
         $service->post(
-            '/zt/register',
+            '/zt/client',
             function (Request $request, TokenInfo $tokenInfo) {
                 // XXX scope
                 $tokenInfo->getScope()->requireScope(['admin', 'portal']);
@@ -152,6 +152,24 @@ class ZeroTierModule implements ServiceModuleInterface
                     $this->clientDb->register(
                         $userId,
                         $clientId
+                    )
+                );
+            }
+        );
+
+        $service->get(
+            '/zt/client',
+            function (Request $request, TokenInfo $tokenInfo) {
+                // XXX scope
+                $tokenInfo->getScope()->requireScope(['admin', 'portal']);
+
+                $userId = $request->getUrl()->getQueryParameter('user_id');
+                InputValidation::userId($userId);
+
+                return new ApiResponse(
+                    'clients',
+                    $this->clientDb->get(
+                        $userId
                     )
                 );
             }
