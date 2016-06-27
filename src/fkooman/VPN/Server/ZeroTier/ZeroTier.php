@@ -114,7 +114,7 @@ class ZeroTier
         )->json();
 
         // XXX see if all okay, then return true
-        return true;
+        return $networkId;
     }
 
     /**
