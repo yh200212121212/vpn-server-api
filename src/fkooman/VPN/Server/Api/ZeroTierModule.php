@@ -51,9 +51,22 @@ class ZeroTierModule implements ServiceModuleInterface
                 $userId = $request->getUrl()->getQueryParameter('user_id');
                 InputValidation::userId($userId);
 
+                $networks = $this->zeroTier->getNetworks($userId);
+                $mapping = $this->clientDb->getMapping();
+
+                $networkList = [];
+                foreach($networks as $network) {
+                    if(array_key_exists($network['id'], $mapping)) {
+                        $network['group_id'] = $mapping[$network['id']];
+                    } else {
+                        $network['group_id'] = null;
+                    }
+                    $networkList[] = $network;
+                }
+                    
                 return new ApiResponse(
                     'networks',
-                    $this->zeroTier->getNetworks($userId)
+                    $networkList
                 );
             }
         );
@@ -83,16 +96,21 @@ class ZeroTierModule implements ServiceModuleInterface
 
                 $userId = $request->getPostParameter('user_id');
                 InputValidation::userId($userId);
-
+                $groupId = $request->getPostParameter('group_id');
+                //InputValidation::groupId($groupId);
                 $networkName = $request->getPostParameter('network_name');
                 InputValidation::networkName($networkName);
 
+                $networkId = $this->zeroTier->addNetwork(
+                    $userId,
+                    $networkName
+                );
+
+                $this->clientDb->mapping($networkId, $groupId);
+
                 return new ApiResponse(
                     'network_id',
-                    $this->zeroTier->addNetwork(
-                        $userId,
-                        $networkName
-                    )
+                    $networkId
                 );
             }
         );

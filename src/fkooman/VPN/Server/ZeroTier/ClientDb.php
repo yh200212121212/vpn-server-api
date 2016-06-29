@@ -89,9 +89,56 @@ class ClientDb
         return array_values($clientList);
     }
 
+    public function mapping($networkId, $groupId)
+    {
+        $stmt = $this->db->prepare(
+            sprintf(
+                'INSERT INTO %s (
+                    network_id,
+                    group_id
+                 ) 
+                 VALUES(
+                    :network_id, 
+                    :group_id
+                 )',
+                $this->prefix.'zt_mapping'
+            )
+        );
+
+        $stmt->bindValue(':network_id', $networkId, PDO::PARAM_STR);
+        $stmt->bindValue(':group_id', $groupId, PDO::PARAM_STR);
+        try {
+            $stmt->execute();
+        } catch (PDOException $e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function getMapping()
+    {
+        $stmt = $this->db->prepare(
+            sprintf(
+                'SELECT network_id, group_id 
+                 FROM %s',
+                $this->prefix.'zt_mapping'
+            )
+        );
+        $stmt->execute();
+
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $mapping = [];
+        foreach ($result as $r) {
+            $mapping[$r['network_id']] = $r['group_id'];
+        }
+
+        return $mapping;
+    }
+
     public static function createTableQueries($prefix)
     {
-        $query = array(
+        $query = [
             sprintf(
                 'CREATE TABLE IF NOT EXISTS %s (
                     user_id VARCHAR(255) NOT NULL,
@@ -100,7 +147,15 @@ class ClientDb
                 )',
                 $prefix.'zt_clients'
             ),
-        );
+            sprintf(
+                'CREATE TABLE IF NOT EXISTS %s (
+                    network_id VARCHAR(255) NOT NULL,
+                    group_id VARCHAR(255) NOT NULL,
+                    UNIQUE(network_id, group_id)
+                )',
+                $prefix.'zt_mapping'
+            ),
+        ];
 
         return $query;
     }
