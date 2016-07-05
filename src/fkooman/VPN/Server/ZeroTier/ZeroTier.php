@@ -73,8 +73,8 @@ class ZeroTier
                         'ipRangeStart' => $ipRangeStart,
                     ],
                 ],
-                'ipLocalRoutes' => [
-                    $ipLocalRoutes,
+                'routes' => [
+                    ["target" => $ipLocalRoutes, "via" => null]
                 ],
                 'multicastLimit' => 32,
                 'name' => sprintf('%s_%s', $userId, $networkName),
