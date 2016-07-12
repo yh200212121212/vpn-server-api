@@ -74,7 +74,7 @@ class ZeroTier
                     ],
                 ],
                 'routes' => [
-                    ["target" => $ipLocalRoutes, "via" => null]
+                    ['target' => $ipLocalRoutes, 'via' => null],
                 ],
                 'multicastLimit' => 32,
                 'name' => sprintf('%s_%s', $userId, $networkName),
@@ -117,14 +117,9 @@ class ZeroTier
         return $networkId;
     }
 
-    /**
-     * Get the ZeroTier networks for a particular user.
-     */
-    public function getNetworks($userId)
+    public function getAllNetworks()
     {
-        $responseData = [];
-
-        $networkIdentifiers = $this->client->get(
+        return $this->client->get(
             sprintf('%s/controller/network', $this->controllerUrl),
             [
                 'headers' => [
@@ -132,6 +127,30 @@ class ZeroTier
                 ],
             ]
         )->json();
+    }
+
+    public function getMembers($networkId)
+    {
+        return array_keys(
+            $this->client->get(
+                sprintf('%s/controller/network/%s/member', $this->controllerUrl, $networkId),
+                [
+                    'headers' => [
+                        'X-ZT1-Auth' => $this->authToken,
+                    ],
+                ]
+            )->json()
+        );
+    }
+
+    /**
+     * Get the ZeroTier networks for a particular user.
+     */
+    public function getNetworks($userId)
+    {
+        $responseData = [];
+
+        $networkIdentifiers = $this->getAllNetworks();
 
         // XXX this is really slow, we should interface with the ZT controller db 
         // directly instead for read purposes, NOT for write
@@ -149,15 +168,7 @@ class ZeroTier
             if (0 === strpos($networkInfo['name'], $userId)) {
                 // get the members
                 // XXX inefficient
-                $clientIdentifiers = $this->client->get(
-                    sprintf('%s/controller/network/%s/member', $this->controllerUrl, $networkId),
-                    [
-                        'headers' => [
-                            'X-ZT1-Auth' => $this->authToken,
-                        ],
-                    ]
-                )->json();
-                $members = array_keys($clientIdentifiers);
+                $members = $this->getMembers($networkId);
 
                 $responseData[] = ['members' => $members, 'id' => $networkId, 'name' => $networkInfo['name'], 'ipAssignmentPools' => $networkInfo['ipAssignmentPools']];
             }

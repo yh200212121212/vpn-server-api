@@ -1,0 +1,104 @@
+#!/usr/bin/php
+<?php
+/**
+ * Copyright 2016 François Kooman <fkooman@tuxed.net>.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+require_once dirname(__DIR__).'/vendor/autoload.php';
+
+use fkooman\Config\Reader;
+use fkooman\Config\YamlFile;
+use fkooman\VPN\Server\ZeroTier\ClientDb;
+use fkooman\VPN\Server\ZeroTier\ZeroTier;
+
+$zeroTierConfig = new Reader(
+    new YamlFile(dirname(__DIR__).'/config/zerotier.yaml')
+);
+
+$aclConfig = new Reader(
+    new YamlFile(dirname(__DIR__).'/config/acl.yaml')
+);
+
+// ACL
+$aclMethod = $aclConfig->v('aclMethod');
+$aclClass = sprintf('fkooman\VPN\Server\Acl\%s', $aclMethod);
+$acl = new $aclClass($aclConfig);
+
+$zeroTier = new ZeroTier(
+    $zeroTierConfig->v('url'),
+    $zeroTierConfig->v('id'),
+    $zeroTierConfig->v('token')
+);
+
+$db = new PDO(
+    $zeroTierConfig->v('db', 'dsn'),
+    $zeroTierConfig->v('db', 'username', false),
+    $zeroTierConfig->v('db', 'password', false)
+);
+$clientDb = new ClientDb($db);
+
+// get a list of all users
+$userList = $clientDb->getUsers();
+
+// create a group/client mapping
+$groupClientList = [];
+foreach ($userList as $userId) {
+    $userGroups = $acl->getGroups($userId);
+    foreach ($userGroups as $userGroup) {
+        if (!array_key_exists($userGroup, $groupClientList)) {
+            $groupClientList[$userGroup] = [];
+        }
+        $groupClientList[$userGroup] = array_merge($groupClientList[$userGroup], $clientDb->get($userId));
+    }
+}
+
+// create a mapping from network IDs and their groups
+$netGroupMapping = $clientDb->getMapping();
+
+$netClientMapping = [];
+foreach ($netGroupMapping as $networkId => $groupId) {
+    $netClientMapping[$networkId] = $groupClientList[$groupId];
+}
+
+// check which networks are defined in the ZT instance
+$zeroTierNetworks = $zeroTier->getAllNetworks();
+
+foreach ($zeroTierNetworks as $netId) {
+    echo sprintf('*** %s', $netId).PHP_EOL;
+
+    $currentNetMembers = $zeroTier->getMembers($netId);
+    if (array_key_exists($netId, $netClientMapping)) {
+        $newNetMembers = $netClientMapping[$netId];
+    } else {
+        $newNetMembers = [];
+    }
+
+    echo 'C: '.implode(',', $currentNetMembers).PHP_EOL;
+    echo 'N: '.implode(',', $newNetMembers).PHP_EOL;
+
+    // calculate the diff between current and new net members and add/delete
+    // the clients
+    $clientsToAdd = array_diff($newNetMembers, $currentNetMembers);
+    $clientsToDelete = array_diff($currentNetMembers, $newNetMembers);
+
+    foreach ($clientsToAdd as $clientId) {
+        echo sprintf('Adding %s to %s', $clientId, $netId).PHP_EOL;
+        $zeroTier->addClient($netId, $clientId);
+    }
+
+    foreach ($clientsToDelete as $clientId) {
+        echo sprintf('Deleting %s from %s', $clientId, $netId).PHP_EOL;
+        $zeroTier->removeClient($netId, $clientId);
+    }
+}

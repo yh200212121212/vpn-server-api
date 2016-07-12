@@ -65,6 +65,26 @@ class ClientDb
         return true;
     }
 
+    public function getUsers()
+    {
+        $stmt = $this->db->prepare(
+            sprintf(
+                'SELECT DISTINCT user_id
+                 FROM %s',
+                $this->prefix.'zt_clients'
+            )
+        );
+        $stmt->execute();
+
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $userList = [];
+        foreach ($result as $r) {
+            $userList[] = $r['user_id'];
+        }
+
+        return array_values($userList);
+    }
+
     public function get($userId)
     {
         $stmt = $this->db->prepare(
