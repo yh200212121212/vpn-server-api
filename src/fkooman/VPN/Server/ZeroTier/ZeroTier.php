@@ -170,7 +170,7 @@ class ZeroTier
                 // XXX inefficient
                 $members = $this->getMembers($networkId);
 
-                $responseData[] = ['members' => $members, 'id' => $networkId, 'name' => $networkInfo['name'], 'ipAssignmentPools' => $networkInfo['ipAssignmentPools']];
+                $responseData[] = ['members' => $members, 'id' => $networkId, 'name' => explode('_', $networkInfo['name'], 2)[1], 'ipAssignmentPools' => $networkInfo['ipAssignmentPools']];
             }
         }
 
