@@ -46,7 +46,6 @@ class ServerConfig
                     'key /etc/openvpn/tls/server.key',
                     'dh /etc/openvpn/tls/dh.pem',
                     'tls-auth /etc/openvpn/tls/ta.key 0',
-                    'crl-verify /var/lib/vpn-server-api/ca.crl',
                     'client-connect /usr/bin/vpn-server-api-client-connect',
                     'client-disconnect /usr/bin/vpn-server-api-client-disconnect',
                     'push "comp-lzo no"',
@@ -101,9 +100,6 @@ class ServerConfig
 
                 // Pool ID
                 $serverConfig[] = sprintf('setenv POOL_ID %s', $pool->getId());
-
-                // Fix MTU
-                $serverConfig = array_merge($serverConfig, self::getFixMtu($pool, $instance));
 
                 sort($serverConfig, SORT_STRING);
 
@@ -247,17 +243,6 @@ class ServerConfig
 
         return [
             sprintf('proto %s', $proto),
-        ];
-    }
-
-    private static function getFixMtu(Pool $pool, Instance $instance)
-    {
-        if (!$pool->getFixMtu() || 'tcp' === $instance->getProto()) {
-            return [];
-        }
-
-        return [
-            'mssfix 1300',
         ];
     }
 }

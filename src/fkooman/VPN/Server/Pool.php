@@ -74,8 +74,8 @@ class Pool
     /** @var bool */
     private $enableAcl;
 
-    /** @var bool */
-    private $fixMtu;
+    /** @var array */
+    private $aclGroupList;
 
     public function __construct($poolNumber, array $poolData)
     {
@@ -95,7 +95,7 @@ class Pool
         $this->setListen(new IP(self::validate($poolData, 'listen', false, '::')));
         $this->setEnableLog(self::validate($poolData, 'enableLog', false, false));
         $this->setEnableAcl(self::validate($poolData, 'enableAcl', false, false));
-        $this->setFixMtu(self::validate($poolData, 'fixMtu', false, false));
+        $this->setAclGroupList(self::validate($poolData, 'aclGroupList', false, []));
         $this->populateInstances();
     }
 
@@ -276,14 +276,18 @@ class Pool
         return $this->enableAcl;
     }
 
-    public function setFixMtu($fixMtu)
+    public function setAclGroupList(array $aclGroupList)
     {
-        $this->fixMtu = (bool) $fixMtu;
+        foreach ($aclGroupList as $aclGroup) {
+            self::validateString($aclGroup);
+        }
+
+        $this->aclGroupList = array_values($aclGroupList);
     }
 
-    public function getFixMtu()
+    public function getAclGroupList()
     {
-        return $this->fixMtu;
+        return $this->aclGroupList;
     }
 
     private function populateInstances()
@@ -363,6 +367,7 @@ class Pool
         }
 
         return [
+            'aclGroupList' => $this->getAclGroupList(),
             'clientToClient' => $this->getClientToClient(),
             'defaultGateway' => $this->getDefaultGateway(),
             'dns' => $dnsList,

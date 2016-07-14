@@ -1,5 +1,13 @@
 # Changelog
 
+## 8.2.0 (2016-07-14)
+- redo group support to have identifiers and display names instead of just 
+  identifiers and create mapping in the pool configuration
+- remove RemoteAcl for now
+
+## 8.1.0 (2016-07-09)
+- remove the CRL support, only support disabling configurations
+
 ## 8.0.5 (2016-06-07)
 - add user ID to info log when user is not a member of the group
 - create the otp_secrets and voot_secrets directories with the correct 

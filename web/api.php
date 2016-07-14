@@ -24,7 +24,6 @@ use fkooman\Rest\Plugin\Authentication\AuthenticationPlugin;
 use fkooman\Rest\Plugin\Authentication\Bearer\ArrayBearerValidator;
 use fkooman\Rest\Plugin\Authentication\Bearer\BearerAuthentication;
 use fkooman\Rest\Service;
-use fkooman\VPN\Server\Api\CaModule;
 use fkooman\VPN\Server\Api\CommonNamesModule;
 use fkooman\VPN\Server\Api\InfoModule;
 use fkooman\VPN\Server\Api\LogModule;
@@ -32,7 +31,6 @@ use fkooman\VPN\Server\Api\OpenVpnModule;
 use fkooman\VPN\Server\Api\UsersModule;
 use fkooman\VPN\Server\Api\ZeroTierModule;
 use fkooman\VPN\Server\ConnectionLog;
-use fkooman\VPN\Server\CrlFetcher;
 use fkooman\VPN\Server\Disable;
 use fkooman\VPN\Server\OpenVpn\ManagementSocket;
 use fkooman\VPN\Server\OpenVpn\ServerManager;
@@ -100,13 +98,6 @@ try {
         ]
     );
 
-    // handles fetching the certificate revocation list
-    $crlFetcher = new CrlFetcher(
-        sprintf('%s/ca.crl', $config->v('remoteApi', 'vpn-ca-api', 'uri')),
-        $config->v('crl', 'path'),
-        $client
-    );
-
     $logger = new Logger('vpn-server-api');
     $syslog = new SyslogHandler('vpn-server-api', 'user');
     $formatter = new LineFormatter();
@@ -161,7 +152,6 @@ try {
     $service->addModule(new OpenVpnModule($serverManager));
     $service->addModule(new CommonNamesModule($commonNamesDisable, $logger));
     $service->addModule(new UsersModule($usersDisable, $otpSecret, $vootToken, $acl, $logger));
-    $service->addModule(new CaModule($crlFetcher, $logger));
     $service->addModule(new InfoModule($serverPools));
     $service->addModule(new ZeroTierModule($zeroTier, $clientDb));
     $service->run()->send();
