@@ -56,10 +56,10 @@ $groupClientList = [];
 foreach ($userList as $userId) {
     $userGroups = $acl->getGroups($userId);
     foreach ($userGroups as $userGroup) {
-        if (!array_key_exists($userGroup, $groupClientList)) {
-            $groupClientList[$userGroup] = [];
+        if (!array_key_exists($userGroup['id'], $groupClientList)) {
+            $groupClientList[$userGroup['id']] = [];
         }
-        $groupClientList[$userGroup] = array_merge($groupClientList[$userGroup], $clientDb->get($userId));
+        $groupClientList[$userGroup['id']] = array_merge($groupClientList[$userGroup['id']], $clientDb->get($userId));
     }
 }
 
