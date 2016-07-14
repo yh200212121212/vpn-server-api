@@ -119,7 +119,7 @@ class ZeroTier
 
     public function getAllNetworks()
     {
-        return $this->client->get(
+        $networkIdentifiers = $this->client->get(
             sprintf('%s/controller/network', $this->controllerUrl),
             [
                 'headers' => [
@@ -127,6 +127,29 @@ class ZeroTier
                 ],
             ]
         )->json();
+
+        $responseData = [];
+        // XXX this feels quite inefficient!
+        foreach ($networkIdentifiers as $networkId) {
+            $networkInfo = $this->client->get(
+                sprintf('%s/controller/network/%s', $this->controllerUrl, $networkId),
+                [
+                    'headers' => [
+                        'X-ZT1-Auth' => $this->authToken,
+                    ],
+                ]
+            )->json();
+
+            $members = $this->getMembers($networkId);
+            $responseData[] = [
+                'members' => $members,
+                'id' => $networkId,
+                'name' => $networkInfo['name'],
+                'ipAssignmentPools' => $networkInfo['ipAssignmentPools'],
+            ];
+        }
+
+        return $responseData;
     }
 
     public function getMembers($networkId)
@@ -148,29 +171,13 @@ class ZeroTier
      */
     public function getNetworks($userId)
     {
+        $networks = $this->getAllNetworks();
+
         $responseData = [];
-
-        $networkIdentifiers = $this->getAllNetworks();
-
-        // XXX this is really slow, we should interface with the ZT controller db 
-        // directly instead for read purposes, NOT for write
-        foreach ($networkIdentifiers as $networkId) {
-            $networkInfo = $this->client->get(
-                sprintf('%s/controller/network/%s', $this->controllerUrl, $networkId),
-                [
-                    'headers' => [
-                        'X-ZT1-Auth' => $this->authToken,
-                    ],
-                ]
-            )->json();
-
-            $networkName = $networkInfo['name'];
-            if (0 === strpos($networkInfo['name'], $userId)) {
-                // get the members
-                // XXX inefficient
-                $members = $this->getMembers($networkId);
-
-                $responseData[] = ['members' => $members, 'id' => $networkId, 'name' => explode('_', $networkInfo['name'], 2)[1], 'ipAssignmentPools' => $networkInfo['ipAssignmentPools']];
+        foreach ($networks as $network) {
+            if (0 === strpos($network['name'], $userId)) {
+                $network['name'] = explode('_', $network['name'], 2)[1];
+                $responseData[] = $network;
             }
         }
 
