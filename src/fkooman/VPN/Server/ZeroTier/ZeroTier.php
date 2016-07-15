@@ -140,9 +140,18 @@ class ZeroTier
                 ]
             )->json();
 
+            $memberList = [];
             $members = $this->getMembers($networkId);
+            foreach ($members as $member) {
+                $memberData = $this->getMember($networkId, $member);
+                if (false === $memberData['authorized']) {
+                    continue;
+                }
+                $memberList[] = $member;
+            }
+
             $responseData[] = [
-                'members' => $members,
+                'members' => $memberList,
                 'id' => $networkId,
                 'name' => $networkInfo['name'],
                 'ipAssignmentPools' => $networkInfo['ipAssignmentPools'],
@@ -164,6 +173,18 @@ class ZeroTier
                 ]
             )->json()
         );
+    }
+
+    public function getMember($networkId, $clientId)
+    {
+        return $this->client->get(
+            sprintf('%s/controller/network/%s/member/%s', $this->controllerUrl, $networkId, $clientId),
+            [
+                'headers' => [
+                    'X-ZT1-Auth' => $this->authToken,
+                ],
+            ]
+        )->json();
     }
 
     /**

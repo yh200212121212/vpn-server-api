@@ -74,12 +74,13 @@ foreach ($netGroupMapping as $networkId => $groupId) {
 // check which networks are defined in the ZT instance
 $zeroTierNetworks = $zeroTier->getAllNetworks();
 
-foreach ($zeroTierNetworks as $netId) {
-    echo sprintf('*** %s', $netId).PHP_EOL;
+foreach ($zeroTierNetworks as $net) {
+    echo sprintf('*** %s', $net['id']).PHP_EOL;
 
-    $currentNetMembers = $zeroTier->getMembers($netId);
-    if (array_key_exists($netId, $netClientMapping)) {
-        $newNetMembers = $netClientMapping[$netId];
+    $currentNetMembers = $net['members'];
+
+    if (array_key_exists($net['id'], $netClientMapping)) {
+        $newNetMembers = $netClientMapping[$net['id']];
     } else {
         $newNetMembers = [];
     }
@@ -98,7 +99,7 @@ foreach ($zeroTierNetworks as $netId) {
     }
 
     foreach ($clientsToDelete as $clientId) {
-        echo sprintf('Deleting %s from %s', $clientId, $netId).PHP_EOL;
-        $zeroTier->removeClient($netId, $clientId);
+        echo sprintf('Deleting %s from %s', $clientId, $net['id']).PHP_EOL;
+        $zeroTier->removeClient($net['id'], $clientId);
     }
 }
