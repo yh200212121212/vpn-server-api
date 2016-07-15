@@ -71,6 +71,36 @@ class ZeroTierModule implements ServiceModuleInterface
             }
         );
 
+        // get the networks for which this user is a guest
+        $service->get(
+            '/zt/networks/guest',
+            function (Request $request, TokenInfo $tokenInfo) {
+                // XXX scope
+                $tokenInfo->getScope()->requireScope(['admin', 'portal']);
+
+                $userId = $request->getUrl()->getQueryParameter('user_id');
+                InputValidation::userId($userId);
+
+                $networks = $this->zeroTier->getNetworks($userId);
+                $mapping = $this->clientDb->getMapping();
+
+                $networkList = [];
+                foreach($networks as $network) {
+                    if(array_key_exists($network['id'], $mapping)) {
+                        $network['group_id'] = $mapping[$network['id']];
+                    } else {
+                        $network['group_id'] = null;
+                    }
+                    $networkList[] = $network;
+                }
+                    
+                return new ApiResponse(
+                    'networks',
+                    $networkList
+                );
+            }
+        );
+
         $service->delete(
             '/zt/networks/:networkId',
             function (Request $request, TokenInfo $tokenInfo, $networkId) {
@@ -115,45 +145,46 @@ class ZeroTierModule implements ServiceModuleInterface
             }
         );
 
-        $service->post(
-            '/zt/networks/:networkId/member',
-            function (Request $request, TokenInfo $tokenInfo, $networkId) {
-                // XXX scope
-                $tokenInfo->getScope()->requireScope(['admin', 'portal']);
+#        $service->post(
+#            '/zt/networks/:networkId/member',
+#            function (Request $request, TokenInfo $tokenInfo, $networkId) {
+#                // XXX scope
+#                $tokenInfo->getScope()->requireScope(['admin', 'portal']);
 
-                InputValidation::networkId($networkId);
-                $clientId = $request->getPostParameter('client_id');
-                InputValidation::clientId($clientId);
+#                InputValidation::networkId($networkId);
+#                $clientId = $request->getPostParameter('client_id');
+#                InputValidation::clientId($clientId);
 
-                return new ApiResponse(
-                    'ok',
-                    $this->zeroTier->addClient(
-                        $networkId,
-                        $clientId
-                    )
-                );
-            }
-        );
+#                return new ApiResponse(
+#                    'ok',
+#                    $this->zeroTier->addClient(
+#                        $networkId,
+#                        $clientId
+#                    )
+#                );
+#            }
+#        );
 
-        $service->delete(
-            '/zt/networks/:networkId/member/:clientId',
-            function (Request $request, TokenInfo $tokenInfo, $networkId, $clientId) {
-                // XXX scope
-                $tokenInfo->getScope()->requireScope(['admin', 'portal']);
+#        $service->delete(
+#            '/zt/networks/:networkId/member/:clientId',
+#            function (Request $request, TokenInfo $tokenInfo, $networkId, $clientId) {
+#                // XXX scope
+#                $tokenInfo->getScope()->requireScope(['admin', 'portal']);
 
-                InputValidation::networkId($networkId);
-                InputValidation::clientId($clientId);
+#                InputValidation::networkId($networkId);
+#                InputValidation::clientId($clientId);
 
-                return new ApiResponse(
-                    'ok',
-                    $this->zeroTier->addClient(
-                        $networkId,
-                        $clientId
-                    )
-                );
-            }
-        );
+#                return new ApiResponse(
+#                    'ok',
+#                    $this->zeroTier->addClient(
+#                        $networkId,
+#                        $clientId
+#                    )
+#                );
+#            }
+#        );
 
+        // register new client ID for user
         $service->post(
             '/zt/client',
             function (Request $request, TokenInfo $tokenInfo) {
@@ -175,6 +206,7 @@ class ZeroTierModule implements ServiceModuleInterface
             }
         );
 
+        // get client ID(s) for user
         $service->get(
             '/zt/client',
             function (Request $request, TokenInfo $tokenInfo) {
