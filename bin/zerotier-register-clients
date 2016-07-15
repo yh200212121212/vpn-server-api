@@ -94,8 +94,8 @@ foreach ($zeroTierNetworks as $net) {
     $clientsToDelete = array_diff($currentNetMembers, $newNetMembers);
 
     foreach ($clientsToAdd as $clientId) {
-        echo sprintf('Adding %s to %s', $clientId, $netId).PHP_EOL;
-        $zeroTier->addClient($netId, $clientId);
+        echo sprintf('Adding %s to %s', $clientId, $net['id']).PHP_EOL;
+        $zeroTier->addClient($net['id'], $clientId);
     }
 
     foreach ($clientsToDelete as $clientId) {
