@@ -150,10 +150,13 @@ class ZeroTier
                 $memberList[] = $member;
             }
 
+            list($userId, $networkName) = explode('_', $networkInfo['name'], 2);
+
             $responseData[] = [
                 'members' => $memberList,
                 'id' => $networkId,
-                'name' => $networkInfo['name'],
+                'name' => $networkName,
+                'user_id' => $userId,
                 'ipAssignmentPools' => $networkInfo['ipAssignmentPools'],
             ];
         }
@@ -196,8 +199,7 @@ class ZeroTier
 
         $responseData = [];
         foreach ($networks as $network) {
-            if (0 === strpos($network['name'], $userId)) {
-                $network['name'] = explode('_', $network['name'], 2)[1];
+            if ($network['user_id'] === $userId) {
                 $responseData[] = $network;
             }
         }

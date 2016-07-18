@@ -55,15 +55,15 @@ class ZeroTierModule implements ServiceModuleInterface
                 $mapping = $this->clientDb->getMapping();
 
                 $networkList = [];
-                foreach($networks as $network) {
-                    if(array_key_exists($network['id'], $mapping)) {
+                foreach ($networks as $network) {
+                    if (array_key_exists($network['id'], $mapping)) {
                         $network['group_id'] = $mapping[$network['id']];
                     } else {
                         $network['group_id'] = null;
                     }
                     $networkList[] = $network;
                 }
-                    
+
                 return new ApiResponse(
                     'networks',
                     $networkList
@@ -81,19 +81,30 @@ class ZeroTierModule implements ServiceModuleInterface
                 $userId = $request->getUrl()->getQueryParameter('user_id');
                 InputValidation::userId($userId);
 
-                $networks = $this->zeroTier->getNetworks($userId);
+                $userClients = $this->clientDb->get($userId);
+                $networks = $this->zeroTier->getAllNetworks();
                 $mapping = $this->clientDb->getMapping();
 
                 $networkList = [];
-                foreach($networks as $network) {
-                    if(array_key_exists($network['id'], $mapping)) {
+
+                foreach ($networks as $network) {
+                    if ($userId === $network['user_id']) {
+                        continue;
+                    }
+                    if (array_key_exists($network['id'], $mapping)) {
                         $network['group_id'] = $mapping[$network['id']];
                     } else {
                         $network['group_id'] = null;
                     }
-                    $networkList[] = $network;
+
+                    // check if any of the user's client_ids is registered 
+                    // at this network
+                    $netMembers = $network['members'];
+                    if (0 !== count(array_intersect($userClients, $netMembers))) {
+                        $networkList[] = $network;
+                    }
                 }
-                    
+
                 return new ApiResponse(
                     'networks',
                     $networkList
@@ -144,45 +155,6 @@ class ZeroTierModule implements ServiceModuleInterface
                 );
             }
         );
-
-#        $service->post(
-#            '/zt/networks/:networkId/member',
-#            function (Request $request, TokenInfo $tokenInfo, $networkId) {
-#                // XXX scope
-#                $tokenInfo->getScope()->requireScope(['admin', 'portal']);
-
-#                InputValidation::networkId($networkId);
-#                $clientId = $request->getPostParameter('client_id');
-#                InputValidation::clientId($clientId);
-
-#                return new ApiResponse(
-#                    'ok',
-#                    $this->zeroTier->addClient(
-#                        $networkId,
-#                        $clientId
-#                    )
-#                );
-#            }
-#        );
-
-#        $service->delete(
-#            '/zt/networks/:networkId/member/:clientId',
-#            function (Request $request, TokenInfo $tokenInfo, $networkId, $clientId) {
-#                // XXX scope
-#                $tokenInfo->getScope()->requireScope(['admin', 'portal']);
-
-#                InputValidation::networkId($networkId);
-#                InputValidation::clientId($clientId);
-
-#                return new ApiResponse(
-#                    'ok',
-#                    $this->zeroTier->addClient(
-#                        $networkId,
-#                        $clientId
-#                    )
-#                );
-#            }
-#        );
 
         // register new client ID for user
         $service->post(
