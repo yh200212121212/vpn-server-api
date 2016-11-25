@@ -63,8 +63,6 @@ class ZeroTierModule implements ServiceModuleInterface
                     }
 
                     $userClientList = [];
-#                    error_log(var_export($network['members'], true));
-
                     foreach($network['members'] as $clientId) {
                         $clientId .= '';
                         $userId = $this->clientDb->getUserForClientId($clientId);
@@ -103,6 +101,7 @@ class ZeroTierModule implements ServiceModuleInterface
                 $networkList = [];
 
                 foreach ($networks as $network) {
+                
                     if ($userId === $network['user_id']) {
                         continue;
                     }
@@ -121,10 +120,10 @@ class ZeroTierModule implements ServiceModuleInterface
                         $userClientList = [];
                         foreach($network['members'] as $clientId) {
                             $clientId .= '';
-                            $userId = $this->clientDb->getUserForClientId($clientId);
+                            $netUserId = $this->clientDb->getUserForClientId($clientId);
                             $userClientList[] = [
                                 'clientId' => $clientId,
-                                'userId' => $userId,
+                                'userId' => $netUserId,
                             ];
                         }
                         $network['members'] = $userClientList;
