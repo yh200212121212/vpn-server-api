@@ -116,6 +116,19 @@ class ZeroTierModule implements ServiceModuleInterface
                     // at this network
                     $netMembers = $network['members'];
                     if (0 !== count(array_intersect($userClients, $netMembers))) {
+
+                        // fix members
+                        $userClientList = [];
+                        foreach($network['members'] as $clientId) {
+                            $clientId .= '';
+                            $userId = $this->clientDb->getUserForClientId($clientId);
+                            $userClientList[] = [
+                                'clientId' => $clientId,
+                                'userId' => $userId,
+                            ];
+                        }
+                        $network['members'] = $userClientList;
+
                         $networkList[] = $network;
                     }
                 }
