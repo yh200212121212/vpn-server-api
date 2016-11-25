@@ -25,32 +25,10 @@ use fkooman\VPN\Server\ZeroTier\ClientDb;
 
 try {
     $config = new Reader(
-        new YamlFile(dirname(__DIR__).'/config/log.yaml')
-    );
-
-    $db = new PDO(
-        $config->v('log', 'dsn'),
-        $config->v('log', 'username', false),
-        $config->v('log', 'password', false)
-    );
-
-    $connectionLog = new ConnectionLog($db);
-    $connectionLog->initDatabase();
-
-    $db = new PDO(
-        $config->v('otp', 'dsn'),
-        $config->v('otp', 'username', false),
-        $config->v('otp', 'password', false)
-    );
-
-    $otpLog = new OtpLog($db);
-    $otpLog->initDatabase();
-
-    $config = new Reader(
         new YamlFile(dirname(__DIR__).'/config/zerotier.yaml')
     );
     $db = new PDO(
-        $config->v('db', 'dsn'),
+        $config->v('db', 'dsn', false, sprintf('sqlite://%s/data/zerotier.sqlite', dirname(__DIR__))),
         $config->v('db', 'username', false),
         $config->v('db', 'password', false)
     );

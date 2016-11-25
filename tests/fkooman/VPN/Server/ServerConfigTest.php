@@ -40,7 +40,7 @@ class ServerConfigTest extends PHPUnit_Framework_TestCase
             )
         );
 
-#        var_export($serverConfig);
+//        var_export($serverConfig);
 
         $this->assertSame(
             [

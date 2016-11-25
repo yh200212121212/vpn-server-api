@@ -42,7 +42,7 @@ $zeroTier = new ZeroTier(
 );
 
 $db = new PDO(
-    $zeroTierConfig->v('db', 'dsn'),
+    $zeroTierConfig->v('db', 'dsn', false, sprintf('sqlite://%s/data/zerotier.sqlite', dirname(__DIR__))),
     $zeroTierConfig->v('db', 'username', false),
     $zeroTierConfig->v('db', 'password', false)
 );

@@ -26,11 +26,9 @@ use fkooman\Rest\Plugin\Authentication\Bearer\BearerAuthentication;
 use fkooman\Rest\Service;
 use fkooman\VPN\Server\Api\CommonNamesModule;
 use fkooman\VPN\Server\Api\InfoModule;
-use fkooman\VPN\Server\Api\LogModule;
 use fkooman\VPN\Server\Api\OpenVpnModule;
 use fkooman\VPN\Server\Api\UsersModule;
 use fkooman\VPN\Server\Api\ZeroTierModule;
-use fkooman\VPN\Server\ConnectionLog;
 use fkooman\VPN\Server\Disable;
 use fkooman\VPN\Server\OpenVpn\ManagementSocket;
 use fkooman\VPN\Server\OpenVpn\ServerManager;
@@ -39,7 +37,6 @@ use fkooman\VPN\Server\Pools;
 use fkooman\VPN\Server\VootToken;
 use fkooman\VPN\Server\ZeroTier\ZeroTier;
 use fkooman\VPN\Server\ZeroTier\ClientDb;
-use GuzzleHttp\Client;
 use Monolog\Formatter\LineFormatter;
 use Monolog\Handler\SyslogHandler;
 use Monolog\Logger;
@@ -68,7 +65,7 @@ try {
     );
 
     $db = new PDO(
-        $zeroTierConfig->v('db', 'dsn'),
+        $zeroTierConfig->v('db', 'dsn', false, sprintf('sqlite://%s/data/zerotier.sqlite', dirname(__DIR__))),
         $zeroTierConfig->v('db', 'username', false),
         $zeroTierConfig->v('db', 'password', false)
     );
@@ -81,23 +78,6 @@ try {
         new YamlFile(dirname(__DIR__).'/config/log.yaml')
     );
 
-    $client = new Client(
-        [
-            'defaults' => [
-                'headers' => [
-                    'Authorization' => sprintf(
-                        'Bearer %s',
-                        $config->v(
-                            'remoteApi',
-                            'vpn-ca-api',
-                            'token'
-                        )
-                    ),
-                ],
-            ],
-        ]
-    );
-
     $logger = new Logger('vpn-server-api');
     $syslog = new SyslogHandler('vpn-server-api', 'user');
     $formatter = new LineFormatter();
@@ -108,21 +88,6 @@ try {
 
     // handles the connection to the various OpenVPN instances
     $serverManager = new ServerManager($serverPools, $managementSocket, $logger);
-
-    // handles the connection history log
-    try {
-        $db = new PDO(
-            $logConfig->v('log', 'dsn'),
-            $logConfig->v('log', 'username', false),
-            $logConfig->v('log', 'password', false)
-        );
-        $connectionLog = new ConnectionLog($db);
-    } catch (PDOException $e) {
-        // unable to connect to database, so we continue without being able
-        // to view the log
-        syslog(LOG_ERR, $e->__toString());
-        $connectionLog = null;
-    }
 
     // HTTP request router
     $service = new Service();
@@ -148,7 +113,6 @@ try {
     $authenticationPlugin = new AuthenticationPlugin();
     $authenticationPlugin->register($apiAuth, 'api');
     $service->getPluginRegistry()->registerDefaultPlugin($authenticationPlugin);
-    $service->addModule(new LogModule($connectionLog));
     $service->addModule(new OpenVpnModule($serverManager));
     $service->addModule(new CommonNamesModule($commonNamesDisable, $logger));
     $service->addModule(new UsersModule($usersDisable, $otpSecret, $vootToken, $acl, $logger));

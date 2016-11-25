@@ -69,7 +69,6 @@ class CommonNamesModule implements ServiceModuleInterface
                 $this->logger->info(sprintf('disabling common_name "%s"', $commonName));
 
                 return new ApiResponse('ok', $this->commonNames->setDisable($commonName, true));
-
             }
         );
 

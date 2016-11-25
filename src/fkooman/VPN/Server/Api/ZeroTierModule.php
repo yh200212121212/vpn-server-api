@@ -97,7 +97,7 @@ class ZeroTierModule implements ServiceModuleInterface
                         $network['group_id'] = null;
                     }
 
-                    // check if any of the user's client_ids is registered 
+                    // check if any of the user's client_ids is registered
                     // at this network
                     $netMembers = $network['members'];
                     if (0 !== count(array_intersect($userClients, $netMembers))) {

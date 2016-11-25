@@ -57,9 +57,9 @@ class UsersModule implements ServiceModuleInterface
 
     public function init(Service $service)
     {
-        //
+
         // DISABLED
-        //
+
         $service->get(
             '/users/disabled',
             function (Request $request, TokenInfo $tokenInfo) {
@@ -101,9 +101,8 @@ class UsersModule implements ServiceModuleInterface
             }
         );
 
-        //
         // OTP_SECRETS
-        //
+
         $service->get(
             '/users/otp_secrets',
             function (Request $request, TokenInfo $tokenInfo) {
@@ -147,9 +146,8 @@ class UsersModule implements ServiceModuleInterface
             }
         );
 
-        //
         // GROUPS
-        //
+
         $service->get(
             '/users/groups/:userId',
             function ($userId, Request $request, TokenInfo $tokenInfo) {
@@ -160,9 +158,8 @@ class UsersModule implements ServiceModuleInterface
             }
         );
 
-        //
         // VOOT_TOKENS
-        //
+
         $service->get(
             '/users/voot_tokens/:userId',
             function ($userId, Request $request, TokenInfo $tokenInfo) {
