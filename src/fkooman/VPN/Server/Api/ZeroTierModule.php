@@ -61,6 +61,21 @@ class ZeroTierModule implements ServiceModuleInterface
                     } else {
                         $network['group_id'] = null;
                     }
+
+                    $userClientList = [];
+#                    error_log(var_export($network['members'], true));
+
+                    foreach($network['members'] as $clientId) {
+                        $clientId .= '';
+                        $userId = $this->clientDb->getUserForClientId($clientId);
+                        $userClientList[] = [
+                            'clientId' => $clientId,
+                            'userId' => $userId,
+                        ];
+                    }
+                    $network['members'] = $userClientList;
+                
+
                     $networkList[] = $network;
                 }
 

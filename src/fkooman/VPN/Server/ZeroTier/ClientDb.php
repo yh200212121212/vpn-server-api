@@ -85,6 +85,25 @@ class ClientDb
         return array_values($userList);
     }
 
+    public function getUserForClientId($clientId)
+    {
+        $stmt = $this->db->prepare(
+            sprintf(
+                'SELECT user_id 
+                 FROM %s 
+                 WHERE 
+                    client_id = :client_id',
+                $this->prefix.'zt_clients'
+            )
+        );
+        $stmt->bindValue(':client_id', $clientId, PDO::PARAM_STR);
+        $stmt->execute();
+
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        return $result['user_id'];
+    }
+
     public function get($userId)
     {
         $stmt = $this->db->prepare(
